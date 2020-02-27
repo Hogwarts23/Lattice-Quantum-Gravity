@@ -1,5 +1,5 @@
 # Lattice-Quantum-Gravity
-Development starting from January, 2020, with the help of Jack and Judah
+Development starting from January, 2020
 
 ## User Guide
 Run `getcorrelator.py` to read the configurations from directory `4b0` and then store the correlator for each configuration in directory `correlatordata` with file name `allcorrelators.npy`
