@@ -85,7 +85,7 @@ plt.errorbar(x,y1,yerr = err[1:nonzero1], ecolor = 'red',linewidth = 1, capsize 
 plt.plot(x,y,'red')
 plt.grid(True)
 plt.xlabel('Geodesic Distance')
-plt.ylabel('Correlator in log')
+plt.ylabel('Correlator')
 plt.title('start %d, end %d'%(start,end))
 plt.show()
 
