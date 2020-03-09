@@ -1,24 +1,26 @@
 import numpy as np
 from shell import shelling
 import math
-from scipy.sparse import csc_matrix
+from scipy.sparse import csc_matrix, linalg as sla
 from scipy.sparse.linalg import inv
 import scipy.linalg as lin
 import numpy.linalg as lin1
 ###########################################
 import matplotlib.pyplot as plt
 import math
-
+import time
+maxlen = 50
 class QGrModel():
-	def __init__(self, tfname):
+	def __init__(self, tfname,bmass2):
 		self.newton = 6.67430*10**-11
-		self.baremass = 0.1
+		self.baremass2 = bmass2
 		self.fname = tfname
 		self.nlat = None
 		self.label = None
 		self.contentN4inf = None
 		self.matrix = None
-		self.sinverse = None
+		self.lu = None
+		self.prop = None
 		self.shellinfo = None
 		self.corr = None
 
@@ -57,7 +59,7 @@ class QGrModel():
 		length = int(content[0])
 		self.nlat = length
 		self.label = np.zeros(length)
-		matrix = np.diag((5+self.baremass)*np.ones(length))
+		matrix = np.diag((5+self.baremass2)*np.ones(length))
 		while ind2 < length:
 			self.label[ind2] = int(content[ind1])
 			ind1 = ind1 + 6
@@ -75,6 +77,8 @@ class QGrModel():
 			ind = ind + 6
 		self.contentN4inf = content
 		self.matrix = matrix
+#		np.savetxt('test1',matrix[0,:])
+#		np.savetxt('test2',matrix[len(matrix[0,:])-1,:])
 
 	def cstructshelling(self,origin): #origin is the row number
 		if self.label is None:
@@ -136,42 +140,71 @@ class QGrModel():
 		dis,maximum = self.findmax(y)
 		return dis
 
-	def reshelling(self):
+	def correlator(self,numberofcor):
+		if self.label is None:
+			self.cstructpropa()
+		totalcor = np.zeros((maxlen,numberofcor))
 		dis = self.findgeocenter()
 		lst = self.shellinfo[dis].shelllattice
+		for i in range(numberofcor):
+			#t2 = time.time()
+			self.cstructshelling(int(lst[i]))
+			#print('number is',int(lst[i]))
+			#print(time.time()-t2)
+			ori = self.shellinfo[0].origin
+			self.propagtor(ori)
+			pro = self.prop
+			#print(pro)
+			#np.savetxt('test1',pro)
+			num = 0
+			cor = np.zeros(maxlen*4)
+			for shell in self.shellinfo:
+				s = 0
+				for index in shell.shelllattice:
+					s = s + pro[int(index)]
+				s = s/shell.numlat
+				cor[num] = s
+				num = num + 1
+			for j in range(maxlen):
+				totalcor[j,i] = cor[j]
+			#print(cor)
+		self.corr = totalcor
 
-		self.cstructshelling(int(min(lst)))
-
-	def correlator(self):
-		A = self.sinv()
-		A1 = A.toarray()
-		self.reshelling()
-		ori = self.shellinfo[0].origin
-		#print(ori)
-		pro = A1[:,ori]
-		lent = len(self.shellinfo)
-		#print('length is',lent)
-		cor = np.zeros(lent)
-		num = 0
-		for shell in self.shellinfo:
-			s = 0
-			for index in shell.shelllattice:
-				s = s + pro[int(index)]
-			s = s/shell.numlat
-			cor[num] = s
-			num = num + 1
-		self.corr = cor
+	def propagtor(self,source):
+		#t1 = time.time()
+		if self.lu is None:
+			smat = csc_matrix(self.matrix)
+			lu = sla.splu(smat)
+			self.lu = lu
+		#print(time.time()-t1)
+		tmp = np.zeros(self.nlat)
+		tmp[source] = 1
+		x = self.lu.solve(tmp)
+		#print(x)
+		self.prop = x
 
 
 	def sinv(self):
+#		#t1 = time.time()
 		if self.label is None:
 			self.cstructpropa()
+#		#print(time.time()-t1)
 		smat = csc_matrix(self.matrix)
 		self.sinverse = inv(smat)
+		#matrix = self.sinverse.toarray()
+		#np.savetxt('test11',matrix)
 		return self.sinverse
 
-#m = QGrModel('./4b0/l4000k16_h0_all_99404')
+#m = QGrModel('./4b0/l4000k16_h0_all_99404',0.001)
+#t = time.time()
+#m.correlator(20)
 #m.sinv()
+#print(time.time()-t)
+#x = m.sinv()
+#y = x.toarray()
+#print(y[:,3042])
+#print(time.time()-t)
+#print(m.corr)
 #m.cstructshelling(0)
 #s=0
 #for i in m.shellinfo:

@@ -22,16 +22,16 @@ def inv_cov(y):
 	tmpinv = lin.inv(tmp)
 	return tmpinv
 
-def fit(func,y,mcov,numfile,start,end,numpara,p=np.array([1,1,1])):
+def fit(func,y,mcov,numcor,start,end,numpara,p=np.array([1,1,1])):
 	invm = lin.inv(mcov)
 	#print(invm)
 	#find the number of parameters automatically
 	#define the array that contains parameters and \chi^2 for all configurations
-	fittedpara = np.zeros((numpara,numfile))
-	allchisq = np.zeros(numfile)
+	fittedpara = np.zeros((numpara,numcor))
+	allchisq = np.zeros(numcor)
 	#xdata = np.arange(nonzero)
 	xdata = np.arange(start,end)
-	for j in range(numfile):
+	for j in range(numcor):
 		ydata = y[:,j]
 		popt,pcov = curve_fit(func,xdata,ydata,sigma = mcov,p0 = p)
 		fittedpara[:,j] = popt
