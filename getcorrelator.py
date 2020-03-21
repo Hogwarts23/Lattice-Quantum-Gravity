@@ -2,23 +2,24 @@ import qgrmodel as qm
 import os
 import astropy.stats as aspys
 import numpy as np
+from pathlib import Path
 maxlen = 50
-numberofcor = 20
-bmass = 0.002
+corperconfig = 20
+bmass = 0.027
 #get the configuration directory
-dirs = os.listdir('./4b0')
+dirs = os.listdir(Path("./4b0"))
 lent = len(dirs)
 #define a matrix to store correlators from all the files
 #with rows be the distance and columns be the configuration number
-totalcor = np.zeros((maxlen,lent*numberofcor))
+totalcor = np.zeros((maxlen,lent*corperconfig))
 for file in range(lent):
-	m = qm.QGrModel('./4b0/'+dirs[file],bmass**2)
-	m.correlator(numberofcor)
+	m = qm.QGrModel(Path("./4b0")/dirs[file],bmass**2)
+	m.correlators(corperconfig)
 	#print(dirs[file],l)
 	for i in range(maxlen):
-		for k in range(numberofcor):
+		for k in range(corperconfig):
 			totalcor[i,file*20+k] = m.corr[i,k]
-	#print(col-file)
+	#print(col-file) cx
 
 # find the maximum distance and truncate the zero part
 #nonzero = 0
@@ -31,5 +32,5 @@ for file in range(lent):
 #print('The maximun length is',nonzero)
 #totalcor = totalcor[0:nonzero,:]
 #save the correlator info to a binary file
-np.save('./correlatordata/allcorrelators_m0=%f'%bmass,totalcor)
+np.save(Path('./correlatordata/allcorrelators_m0=%f'%bmass),totalcor)
 

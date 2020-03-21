@@ -6,9 +6,9 @@ import time
 from inspect import signature
 import numpy.linalg as lin
 import random
-
+from pathlib import Path
 maxlen = 50
-numberofcor = 20
+corperconfig = 20
 binsize = 20
 
 def fittedfunc(x,a,m,b):
@@ -17,7 +17,7 @@ def fittedfunc2(x,a,m,b):
 	return a*np.exp(-m*x)/(x**b)
 
 bmass2 = 0.001
-totalcortmp = np.load('./correlatordata/allcorrelators_m0=%f.npy'%bmass2)
+totalcortmp = np.load(Path('./correlatordata/allcorrelators_m0=%f.npy'%bmass2))
 nonzero = len(totalcortmp[:,0])
 numcortmp = len(totalcortmp[0,:])
 numcor = numcortmp/binsize
@@ -27,7 +27,6 @@ for j in range(int(numcor)):
 		totalcor[i,j] = np.mean(totalcortmp[i,binsize*j:binsize*j+binsize])
 
 #print(totalcortmp[:,10])
-
 
 #for i in range(maxlen):
 #	for j in range(maxwid):
@@ -42,6 +41,8 @@ for i in range(nonzero):
 	estimate, bias, stderr, conf_interval = aspys.jackknife_stats(totalcor[i,:],np.mean,0.95)
 	finalcorrelator[i] = estimate
 	err[i] = stderr
+	print(stderr)
+
 
 
 resamplemean = np.zeros((nonzero,int(numcor)))
@@ -80,9 +81,10 @@ parastderr = np.zeros(numpara)
 finalchisq = np.mean(allchisq)
 for i in range(numpara):
 	finalpara[i] = np.mean(fittedpara[i,:])
-	parastderr[i] = np.std(fittedpara[i,:])
+	parastderr[i] = np.std(fittedpara[i,:])*np.sqrt(numcor - 1)
 #		print(finalchisq/(end-start),'start is ',start,'end is ',end)
 print(finalpara)
+print(parastderr)
 #exit()
 nonzero1 = 33
 fig1 = plt.figure()

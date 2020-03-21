@@ -9,11 +9,10 @@ import numpy.linalg as lin1
 import matplotlib.pyplot as plt
 import math
 import time
-maxlen = 50
 class QGrModel():
 	def __init__(self, tfname,bmass2):
 		self.newton = 6.67430*10**-11
-		self.baremass2 = bmass2
+		self.baremass2 = bmass2 #the bare mass square
 		self.fname = tfname
 		self.nlat = None
 		self.label = None
@@ -23,6 +22,8 @@ class QGrModel():
 		self.prop = None
 		self.shellinfo = None
 		self.corr = None
+		self.corr2 = None
+		self.maxlen = 50
 
 
 	def readpartsfromfile(self, keyword):
@@ -94,7 +95,7 @@ class QGrModel():
 		#construct the matrix
 		nleft = length-1
 		shellnum = 0
-		while nleft is not 0:
+		while nleft != 0:
 			shellnum = shellnum + 1
 			tmp = shelling(origin,shellnum)
 			tmplat = shell[shellnum-1].shelllattice
@@ -140,10 +141,40 @@ class QGrModel():
 		dis,maximum = self.findmax(y)
 		return dis
 
-	def correlator(self,numberofcor):
+	def correlator(self):
+		pro = self.prop
+		#print(pro)
+		#np.savetxt('test1',pro)
+		num = 0
+		cor = np.zeros(self.maxlen*4)
+		for shell in self.shellinfo:
+			s = 0
+			for index in shell.shelllattice:
+				s = s + pro[int(index)]
+			s = s/shell.numlat
+			cor[num] = s
+			num = num + 1
+		return cor[0:self.maxlen]
+
+	def twoparticlecorrelator(self):
+		pro2 = self.prop**2
+		#print(pro)
+		#np.savetxt('test1',pro)
+		num = 0
+		cor2 = np.zeros(self.maxlen*4)
+		for shell in self.shellinfo:
+			s = 0
+			for index in shell.shelllattice:
+				s = s + pro2[int(index)]
+			s = s/shell.numlat
+			cor2[num] = s
+			num = num + 1
+		return cor2[0:self.maxlen]
+
+	def correlators(self,numberofcor):
 		if self.label is None:
 			self.cstructpropa()
-		totalcor = np.zeros((maxlen,numberofcor))
+		totalcor = np.zeros((self.maxlen,numberofcor))
 		dis = self.findgeocenter()
 		lst = self.shellinfo[dis].shelllattice
 		for i in range(numberofcor):
@@ -153,22 +184,30 @@ class QGrModel():
 			#print(time.time()-t2)
 			ori = self.shellinfo[0].origin
 			self.propagtor(ori)
-			pro = self.prop
-			#print(pro)
-			#np.savetxt('test1',pro)
-			num = 0
-			cor = np.zeros(maxlen*4)
-			for shell in self.shellinfo:
-				s = 0
-				for index in shell.shelllattice:
-					s = s + pro[int(index)]
-				s = s/shell.numlat
-				cor[num] = s
-				num = num + 1
-			for j in range(maxlen):
-				totalcor[j,i] = cor[j]
+			cor = self.correlator()
 			#print(cor)
+			for j in range(self.maxlen):
+				totalcor[j,i] = cor[j]
 		self.corr = totalcor
+
+	def twoparticlecorrelators(self,numberofcor):
+		if self.label is None:
+			self.cstructpropa()
+		totalcor2 = np.zeros((self.maxlen,numberofcor))
+		dis = self.findgeocenter()
+		lst = self.shellinfo[dis].shelllattice
+		for i in range(numberofcor):
+			#t2 = time.time()
+			self.cstructshelling(int(lst[i]))
+			#print('number is',int(lst[i]))
+			#print(time.time()-t2)
+			ori = self.shellinfo[0].origin
+			self.propagtor(ori)
+			cor2 = self.twoparticlecorrelator()
+			#print(cor)
+			for j in range(self.maxlen):
+				totalcor2[j,i] = cor2[j]
+		self.corr2 = totalcor2
 
 	def propagtor(self,source):
 		#t1 = time.time()
@@ -195,12 +234,11 @@ class QGrModel():
 		#np.savetxt('test11',matrix)
 		return self.sinverse
 
-#m = QGrModel('./4b0/l4000k16_h0_all_99404',0.001)
-#t = time.time()
-#m.correlator(20)
-#m.sinv()
-#print(time.time()-t)
-#x = m.sinv()
+# m = QGrModel('./4b0/l4000k16_h0_all_99404',0.001)
+# t = time.time()
+# m.correlators(20)
+# print(time.time()-t)
+# #x = m.sinv()
 #y = x.toarray()
 #print(y[:,3042])
 #print(time.time()-t)
