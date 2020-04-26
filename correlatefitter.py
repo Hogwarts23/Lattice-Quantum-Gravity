@@ -7,13 +7,13 @@ from scipy.optimize import curve_fit
 import math
 from pathlib import Path
 import matplotlib.pyplot as plt
-def chisq(xdata,ydata,invm,func,para):
-	D = len(ydata)
+def chisq(xdata,ymean,invm,func,para):
+	D = len(ymean)
 	nump = len(para)
 	Chisq = 0
 	for i in range(D):
 		for j in range(D):
-				Chisq =  Chisq + (func(xdata[i],para[0],para[1],para[2])-ydata[i])*(func(xdata[j],para[0],para[1],para[2])- ydata[j])* invm[i,j]
+				Chisq =  Chisq + (func(xdata[i],para[0],para[1],para[2])-ymean[i])*(func(xdata[j],para[0],para[1],para[2])- ymean[j])* invm[i,j]
 	Chisq = Chisq/(D-nump)
 	return Chisq
 
@@ -70,11 +70,12 @@ def fit(func,y,mcov,numcor,start,end,numpara,p=np.array([1,1,1])):
 	allchisq = np.zeros(numcor)
 	#xdata = np.arange(nonzero)
 	xdata = np.arange(start,end)
+	ymean = np.mean(y,axis = 1)
 	for j in range(numcor):
 		ydata = y[:,j]
 		popt,pcov = curve_fit(func,xdata,ydata,sigma = mcov,p0 = p)
 		fittedpara[:,j] = popt
-		allchisq[j] = chisq(xdata,ydata,invm,func,popt)
+		allchisq[j] = chisq(xdata,ymean,invm,func,popt)
 		#fig = plt.figure()
 		#xxdata = np.arange(nonzero)
 		#yydata = fittedfunc(xxdata,popt[0],popt[1],popt[2])
@@ -101,7 +102,7 @@ def kvalue(unbinned,binnedresamplemean,start,end):
 	return kv
 
 
-def fits(func,path,maxlen,corperconfig,binsize,bmass,start,end,numpara,form):
+def fits(func,path,maxlen,corperconfig,binsize,bmass,start,end,numpara,form,ave):#if ave = 1, return the mean of the fitted parameter, if ave = 0, return original fitted para
 	totalcortmp = np.load(Path(path))
 	nonzero = len(totalcortmp[:,0])
 	numcortmp = len(totalcortmp[0,:])
@@ -114,6 +115,7 @@ def fits(func,path,maxlen,corperconfig,binsize,bmass,start,end,numpara,form):
 		for j in range(int(numcor)):
 			for i in range(nonzero):
 				totalcor[i,j] = np.mean(totalcortmp[i,binsize*j:binsize*j+binsize])
+	#print(totalcor[1,:])
 
 
 	resamplemean = np.zeros((nonzero,numcor))
@@ -155,9 +157,13 @@ def fits(func,path,maxlen,corperconfig,binsize,bmass,start,end,numpara,form):
 	finalpara = np.zeros(numpara)
 	parastderr = np.zeros(numpara)
 	finalchisq = np.mean(allchisq)
+	#print(allchisq)
 	for i in range(numpara):
 		finalpara[i] = np.mean(fittedpara[i,:])
 		parastderr[i] = np.std(fittedpara[i,:])*np.sqrt(numcor - 1)
 
-	return totalcor,finalpara,parastderr,finalchisq
+	if ave == 1:
+		return totalcor,finalpara,parastderr,finalchisq
+	else:
+		return totalcor,fittedpara,parastderr,allchisq
 
