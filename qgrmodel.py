@@ -93,7 +93,7 @@ class QGrModel():
 		shell.append(tmp)
 		tmpdistance[origin] = 0
 		#construct the matrix
-		nleft = length-1
+		nleft = length-1 # - 1 because we have already add the origin to the shelling
 		shellnum = 0
 		while nleft != 0:
 			shellnum = shellnum + 1
@@ -183,7 +183,7 @@ class QGrModel():
 			#print('number is',int(lst[i]))
 			#print(time.time()-t2)
 			ori = self.shellinfo[0].origin
-			self.propagtor(ori)
+			self.propagator(ori)
 			cor = self.correlator()
 			#print(cor)
 			for j in range(self.maxlen):
@@ -202,14 +202,14 @@ class QGrModel():
 			#print('number is',int(lst[i]))
 			#print(time.time()-t2)
 			ori = self.shellinfo[0].origin
-			self.propagtor(ori)
+			self.propagator(ori)
 			cor2 = self.twoparticlecorrelator()
 			#print(cor)
 			for j in range(self.maxlen):
 				totalcor2[j,i] = cor2[j]
 		self.corr2 = totalcor2
 
-	def propagtor(self,source):
+	def propagator(self,source):
 		#t1 = time.time()
 		if self.lu is None:
 			smat = csc_matrix(self.matrix)
@@ -234,7 +234,16 @@ class QGrModel():
 		#np.savetxt('test11',matrix)
 		return self.sinverse
 
-# m = QGrModel('./4b0/l4000k16_h0_all_99404',0.001)
+# m = QGrModel('./4b0/l4000k16_h0_all_99404',0.000001)
+
+# m.cstructshelling(0)
+# m.propagator(0)
+# x = m.correlator()
+
+# np.save('testt',x)
+
+
+# m.twoparticlecorrelators(1)
 # t = time.time()
 # m.correlators(20)
 # print(time.time()-t)
