@@ -6,11 +6,12 @@ from inspect import signature
 import numpy.linalg as lin
 import random
 from pathlib import Path
+from smearedsource import smearefit
 maxlen = 50
 corperconfig = 20
 binsize = 20
-start=3
-end=8
+start=2
+end=9
 
 def fittedfunc(x,a,m,b):
 	return a - m * x - b*np.log(x)
@@ -28,6 +29,12 @@ m=0.001
 totalcor1,allpara1,parastderr1,allchisq1 = cf.fits(fittedfunc,Path('./correlatordata/allcorrelators_m0=%f.npy'%m),maxlen,corperconfig,binsize,m,start,end,numpara,'log',0)
 L = len(allpara1[1,:])
 
+# E= np.zeros(L)
+# for bmass in np.arange(0.001,0.051,0.001):
+# 	m,M,E[int(bmass*1000-1)] = smearefit(fittedfunc,Path('./correlatordata/allcorrelators_m0=%f.npy'%bmass),maxlen,corperconfig,binsize,bmass,start,end,numpara,'log',1)
+
+
+
 onemass = np.zeros((50,L))
 twomass = np.zeros((50,L))
 for bmass in np.arange(0.001,0.051,0.001):
@@ -37,24 +44,18 @@ for bmass in np.arange(0.001,0.051,0.001):
 	totalcor2,allpara2,parastderr2,allchisq2 = cf.fits(fittedfunc,Path('./correlatordata/alltwoparticlecorrelators_m0=%f.npy'%bmass),maxlen,corperconfig,binsize,bmass,start,end,numpara,'log',0)
 	twomass[int(1000*bmass-1),:]=allpara2[1,:]
 
-np.save(Path('./mass/onemass_4b0'),onemass)
-np.save(Path('./mass/twomass_4b0'),twomass)
+np.save(Path('./mass/onemass_4b0_%d-%d'%(start,end)),onemass)
+np.save(Path('./mass/twomass_4b0_%d-%d'%(start,end)),twomass)
+
+
+
+
 
 # print('chi:',finalchisq1)
 # totalcor,finalpara,parastderr,finalchisq = cf.fits(fittedfunc2,Path('./correlatordata/allcorrelators_m0=%f.npy'%bmass),maxlen,corperconfig,binsize,bmass,start,end,numpara,'exp')
 # m=finalpara1[1] 
 # totalcor,finalpara2,parastderr,finalchisq = cf.fits(fittedfunc2,Path('./correlatordata/alltwoparticlecorrelators_m0=%f.npy'%bmass),maxlen,corperconfig,binsize,bmass,start,end,numpara,'exp')
 # M=finalpara2[1]
-
-# print('m = ',m)
-# print('std error:',parastderr1)
-# print('M = ',M)
-# print('std error:',parastderr2)
-
-# print('Binding energy: ',2*m-M)
-
-# print(finalpara1)
-# print(finalpara)
 
 
 exit()

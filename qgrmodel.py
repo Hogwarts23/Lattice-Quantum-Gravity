@@ -234,9 +234,12 @@ class QGrModel():
 		#np.savetxt('test11',matrix)
 		return self.sinverse
 
-# m = QGrModel('./4b0/l4000k16_h0_all_99404',0.000001)
+# m1 = QGrModel('./4b0/l4000k16_h0_all_99404',0.000001)
+# m2 = QGrModel('./4b0/l4000k16_h0_all_97204',0.000001)
 
-# m.cstructshelling(0)
+# m1.cstructshelling(0)
+# m2.cstructshelling(0)
+
 # m.propagator(0)
 # x = m.correlator()
 
@@ -268,7 +271,8 @@ class QGrModel():
 #for i in range(len(m.shellinfo)):
 #	print(sorted(m.shellinfo[i].shelllattice))
 
-#m.plotdistribution()
+# m1.plotdistribution()
+# m2.plotdistribution()
 
 
 
