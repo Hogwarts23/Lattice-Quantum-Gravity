@@ -1,6 +1,5 @@
 import qgrmodel as qm
 import os
-import astropy.stats as aspys
 import numpy as np
 from pathlib import Path
 maxlen = 50
